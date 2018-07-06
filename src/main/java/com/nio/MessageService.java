@@ -26,7 +26,7 @@ public abstract class MessageService {
     private  volatile AtomicLong sleepTime=new AtomicLong(Per_SLEEP_TIME);// init sleep 1 second
     private static final long Per_SLEEP_TIME=1000L;
 
-    private ExecutorService servicePool=Executors.newWorkStealingPool();//cpu密集型
+    private static  final ExecutorService servicePool=Executors.newWorkStealingPool();//cpu密集型
 
     private Selector selector;
 
@@ -160,7 +160,7 @@ public abstract class MessageService {
         所以 只要在开始的时候注册一次读写后面就不需要再注册 OP_WRITE ，OP_READ事件。
      */
 
-    public void handleKey() throws IOException {
+    public void handleKey()  {
 
                 for(;;){
                     try {
@@ -174,7 +174,11 @@ public abstract class MessageService {
                         }
                     }catch (IOException e){
                         // ignore
-                        selector.close();
+                        try {
+                            selector.close();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
                     }
 
                 }
@@ -193,8 +197,8 @@ public abstract class MessageService {
             // one loop one thread begin
             Selector subSelector=Selector.open();
             socketChannel.register(subSelector,SelectionKey.OP_READ |SelectionKey.OP_WRITE);
-            MessageService sub=new ServerMessageService(subSelector);
-            sub.handleKey();
+            ServerMessageService sub=new ServerMessageService(subSelector);
+            sub.getExecutorService().execute(sub::handleKey);
             //one loop one thread end
 
             //socketChannel.register(selector, SelectionKey.OP_READ |SelectionKey.OP_WRITE);

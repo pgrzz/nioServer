@@ -6,9 +6,13 @@ import com.nio.util.FileUtils;
 
 import java.io.IOException;
 import java.nio.channels.Selector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ServerMessageService extends MessageService {
 
+
+   private static final ExecutorService executorService= Executors.newCachedThreadPool();
 
     public ServerMessageService(Selector selector) {
         super(selector);
@@ -42,5 +46,9 @@ public class ServerMessageService extends MessageService {
             }
 
         }
+    }
+
+    public ExecutorService getExecutorService() {
+        return executorService;
     }
 }
